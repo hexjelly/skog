@@ -1,4 +1,4 @@
-use warp::http::StatusCode;
+use warp::http::Response;
 
 use super::R2d2Pool;
 
@@ -7,15 +7,27 @@ pub fn delete_status(id: i64, pool: R2d2Pool) -> Result<impl warp::Reply, warp::
 	match conn.execute("DELETE FROM statuses WHERE id = ?", &[&id]) {
 		Ok(rows) => {
 			if rows == 0 {
-				debug!("delete_todo: id={} error=Id does not exist", id);
-				Ok(StatusCode::NOT_FOUND)
+				debug!("delete_todo: id={} error=id does not exist", id);
+				let res = Response::builder()
+					.status(404)
+					.body(format!("id={} does not exist", id))
+					.unwrap();
+				Ok(res)
 			} else {
-				Ok(StatusCode::NO_CONTENT)
+				let res = Response::builder()
+					.status(204)
+					.body(format!("id={} deleted succesfully", id))
+					.unwrap();
+				Ok(res)
 			}
 		}
 		Err(e) => {
 			error!("delete_todo: id={} error={}", id, e);
-			Err(warp::reject::not_found()) // TODO: better reject/error
+			let res = Response::builder()
+				.status(500)
+				.body(format!("id={} error={}", id, e))
+				.unwrap();
+			Ok(res)
 		}
 	}
 }
