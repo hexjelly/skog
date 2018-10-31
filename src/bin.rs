@@ -3,11 +3,13 @@ extern crate r2d2;
 extern crate r2d2_sqlite;
 extern crate rusqlite;
 extern crate skog;
+#[macro_use]
 extern crate warp;
 #[macro_use]
 extern crate log;
 
 use r2d2_sqlite::SqliteConnectionManager;
+use rusqlite::NO_PARAMS;
 use skog::{create_status, delete_status, list_statuses};
 use warp::Filter;
 
@@ -16,7 +18,20 @@ fn main() {
     debug!("starting");
     let manager = SqliteConnectionManager::file("file.db");
     let pool = r2d2::Pool::new(manager).unwrap();
-    let _conn = pool.get().unwrap(); // TODO: init db etc
+    let conn = pool.get().unwrap();
+
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS statuses (
+            id          INTEGER PRIMARY KEY,
+            date        INTEGER NOT NULL,
+            update_date INTEGER,
+            eta         INTEGER,
+            close_date  INTEGER,
+            title       TEXT NOT NULL,
+            message     TEXT NOT NULL
+        )",
+        NO_PARAMS,
+    ).unwrap();
 
     // Warp Filter for connection pool
     let pool = warp::any().map(move || pool.clone());
@@ -51,9 +66,11 @@ fn main() {
         .and_then(delete_status);
 
     // collect all api endpoints
-    let api = list.or(create).or(delete);
     let log = warp::log("info");
-    let routes = warp::path("api").and(warp::path("v1")).and(api).with(log);
+    let api_base = path!("api" / "v1");
+    let api = api_base.and(list.or(create).or(delete));
+
+    let routes = api.with(log);
 
     warp::serve(routes).run(([127, 0, 0, 1], 3030));
     debug!("server running");

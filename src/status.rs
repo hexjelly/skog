@@ -1,10 +1,11 @@
 #[derive(Default, Debug, PartialEq, PartialOrd, Clone, Deserialize, Serialize)]
 pub struct Status {
-	date: String,
-	eta: String,
-	close_date: Option<String>,
-	title: String,
-	message: String,
+	pub date: i64,
+	pub update_date: Option<i64>,
+	pub eta: Option<i64>,
+	pub close_date: Option<i64>,
+	pub title: String,
+	pub message: String,
 }
 
 impl Status {
