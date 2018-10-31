@@ -10,7 +10,7 @@ pub fn list_statuses(pool: R2d2Pool) -> impl warp::Reply {
 		.unwrap();
 	let statuses = stmt
 		.query_map(NO_PARAMS, |row| Status {
-			// id: row.get(0),
+			id: row.get(0),
 			date: row.get(1),
 			update_date: row.get(2),
 			eta: row.get(3),

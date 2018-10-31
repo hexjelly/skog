@@ -22,7 +22,7 @@ fn main() {
 
     conn.execute(
         "CREATE TABLE IF NOT EXISTS statuses (
-            id          INTEGER PRIMARY KEY,
+            id          INTEGER PRIMARY KEY AUTOINCREMENT,
             date        INTEGER NOT NULL,
             update_date INTEGER,
             eta         INTEGER,
@@ -44,7 +44,7 @@ fn main() {
     let statuses_index = base.and(warp::path::end());
 
     // specific status
-    let statuses_id = base.and(warp::path::param::<u64>()).and(warp::path::end());
+    let statuses_id = base.and(warp::path::param::<i64>()).and(warp::path::end());
 
     // `GET /statuses`
     let list = warp::get2()
