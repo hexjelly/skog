@@ -10,7 +10,7 @@ extern crate log;
 
 use r2d2_sqlite::SqliteConnectionManager;
 use rusqlite::NO_PARAMS;
-use skog::{create_status, delete_status, list_statuses};
+use skog::{create_status, delete_status, get_status, list_statuses, update_status};
 use warp::Filter;
 
 fn main() {
@@ -23,12 +23,12 @@ fn main() {
     conn.execute(
         "CREATE TABLE IF NOT EXISTS statuses (
             id          INTEGER PRIMARY KEY AUTOINCREMENT,
-            date        INTEGER NOT NULL,
+            date        INTEGER,
             update_date INTEGER,
             eta         INTEGER,
             close_date  INTEGER,
-            title       TEXT NOT NULL,
-            message     TEXT NOT NULL
+            title       TEXT,
+            message     TEXT
         )",
         NO_PARAMS,
     ).unwrap();
@@ -59,16 +59,29 @@ fn main() {
         .and(pool.clone())
         .and_then(create_status);
 
+    // `GET /statuses/:id`
+    let get = warp::get2()
+        .and(statuses_id)
+        .and(pool.clone())
+        .and_then(get_status);
+
     // `DELETE /statuses/:id`
     let delete = warp::delete2()
         .and(statuses_id)
         .and(pool.clone())
         .and_then(delete_status);
 
+    // `PUT /statuses/:id`
+    let update = warp::put2()
+        .and(statuses_id)
+        .and(json_body)
+        .and(pool.clone())
+        .and_then(update_status);
+
     // collect all api endpoints
     let log = warp::log("info");
     let api_base = path!("api" / "v1");
-    let api = api_base.and(list.or(create).or(delete));
+    let api = api_base.and(list.or(create).or(get).or(delete).or(update));
 
     let routes = api.with(log);
 

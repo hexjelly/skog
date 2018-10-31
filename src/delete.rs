@@ -7,7 +7,7 @@ pub fn delete_status(id: i64, pool: R2d2Pool) -> Result<impl warp::Reply, warp::
 	match conn.execute("DELETE FROM statuses WHERE id = ?", &[&id]) {
 		Ok(rows) => {
 			if rows == 0 {
-				debug!("delete_todo: id={} error=id does not exist", id);
+				debug!("delete_status: id={} error=id does not exist", id);
 				let res = Response::builder()
 					.status(404)
 					.body(format!("id={} does not exist", id))
@@ -22,7 +22,7 @@ pub fn delete_status(id: i64, pool: R2d2Pool) -> Result<impl warp::Reply, warp::
 			}
 		}
 		Err(e) => {
-			error!("delete_todo: id={} error={}", id, e);
+			error!("delete_status: id={} error={}", id, e);
 			let res = Response::builder()
 				.status(500)
 				.body(format!("id={} error={}", id, e))
