@@ -17,8 +17,8 @@ fn main() {
     pretty_env_logger::init();
     debug!("starting");
     let manager = SqliteConnectionManager::file("file.db");
-    let pool = r2d2::Pool::new(manager).unwrap();
-    let conn = pool.get().unwrap();
+    let pool = r2d2::Pool::new(manager).expect("error creating connection pool");
+    let conn = pool.get().expect("error getting connection from pool");
 
     conn.execute(
         "CREATE TABLE IF NOT EXISTS statuses (
@@ -31,7 +31,7 @@ fn main() {
             message     TEXT
         )",
         NO_PARAMS,
-    ).unwrap();
+    ).expect("unable to initialize db table");
 
     // Warp Filter for connection pool
     let pool = warp::any().map(move || pool.clone());
